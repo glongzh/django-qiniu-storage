@@ -40,6 +40,7 @@ QINIU_ACCESS_KEY = get_qiniu_config('QINIU_ACCESS_KEY')
 QINIU_SECRET_KEY = get_qiniu_config('QINIU_SECRET_KEY')
 QINIU_BUCKET_NAME = get_qiniu_config('QINIU_BUCKET_NAME')
 QINIU_BUCKET_DOMAIN = get_qiniu_config('QINIU_BUCKET_DOMAIN')
+QINIU_ENABLE_HTTPS = get_qiniu_config('QINIU_ENABLE_HTTPS')
 
 
 class QiniuStorage(Storage):
@@ -52,12 +53,14 @@ class QiniuStorage(Storage):
             access_key=QINIU_ACCESS_KEY,
             secret_key=QINIU_SECRET_KEY,
             bucket_name=QINIU_BUCKET_NAME,
-            bucket_domain=QINIU_BUCKET_DOMAIN):
+            bucket_domain=QINIU_BUCKET_DOMAIN,
+            enable_https=QINIU_ENABLE_HTTPS):
 
         self.auth = Auth(access_key, secret_key)
         self.bucket_name = bucket_name
         self.bucket_domain = bucket_domain
         self.bucket_manager = BucketManager(self.auth)
+        self.enable_https = enable_https
 
     def _clean_name(self, name):
         return force_text(name)
@@ -143,7 +146,8 @@ class QiniuStorage(Storage):
 
     def url(self, name):
         name = self._normalize_name(self._clean_name(name))
-        return urljoin("http://" + self.bucket_domain, name)
+        protocol = "https://" if self.enable_https else "http://"
+        return urljoin(protocol + self.bucket_domain, name)
 
 class QiniuMediaStorage(QiniuStorage):
     location = 'media'
